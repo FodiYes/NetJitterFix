@@ -1,0 +1,6 @@
+PyQt5>=5.15.9
+scapy[basic]>=2.5.0
+matplotlib>=3.7.1
+asyncio>=3.4.3
+numpy>=1.24.3
+qasync>=0.23.0
