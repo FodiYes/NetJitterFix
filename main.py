@@ -19,11 +19,9 @@ class CustomTitleBar(QWidget):
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         
-        # Title label
         self.title_label = QLabel("NetJitterFix")
         self.title_label.setStyleSheet("color: white; font-size: 14px; padding: 5px;")
         
-        # Window controls
         self.minimize_btn = QPushButton("─")
         self.maximize_btn = QPushButton("□")
         self.close_btn = QPushButton("✕")
@@ -36,14 +34,12 @@ class CustomTitleBar(QWidget):
         self.maximize_btn.setObjectName("MaximizeButton")
         self.close_btn.setObjectName("CloseButton")
         
-        # Add widgets to layout
         self.layout.addWidget(self.title_label)
         self.layout.addStretch()
         self.layout.addWidget(self.minimize_btn)
         self.layout.addWidget(self.maximize_btn)
         self.layout.addWidget(self.close_btn)
         
-        # Connect buttons
         self.minimize_btn.clicked.connect(self.parent.showMinimized)
         self.maximize_btn.clicked.connect(self.toggle_maximize)
         self.close_btn.clicked.connect(self.parent.close)
@@ -80,17 +76,15 @@ class ToggleSwitch(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        # Draw background
         if self.is_checked:
-            background_color = QColor(52, 152, 219)  # Blue when on
+            background_color = QColor(52, 152, 219)
         else:
-            background_color = QColor(189, 195, 199)  # Gray when off
+            background_color = QColor(189, 195, 199)
             
         painter.setPen(Qt.NoPen)
         painter.setBrush(background_color)
         painter.drawRoundedRect(0, 0, self.width(), self.height(), 12, 12)
         
-        # Draw knob
         knob_color = QColor(255, 255, 255)
         painter.setBrush(knob_color)
         if self.is_checked:
@@ -115,7 +109,6 @@ class ToggleSwitch(QWidget):
         return self.is_checked
     
     def stateChanged(self, callback):
-        """Connect a callback to state changes"""
         self.callback = callback
 
 class OptimizationWidget(QWidget):
@@ -137,14 +130,11 @@ class OptimizationWidget(QWidget):
         
     def handle_toggle(self, checked):
         if checked:
-            # Применить оптимизацию
             asyncio.create_task(self.apply_optimization())
         else:
-            # Восстановить исходные настройки
             asyncio.create_task(self.restore_settings())
             
     def find_main_window(self):
-        """Find the MainWindow instance"""
         parent = self.parent()
         while parent is not None:
             if isinstance(parent, MainWindow):
@@ -184,52 +174,42 @@ class MainWindow(QMainWindow):
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.drag_position = None
         
-        # Initialize components
         self.network_optimizer = NetworkOptimizer()
         self.network_tester = NetworkTester()
         
-        # Create status label first
         self.status_label = QLabel("Ready")
         
-        # Setup UI
         self.setup_ui()
         self.setStyleSheet(MAIN_STYLE)
         
     def setup_ui(self):
-        # Create main widget and layout
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout(main_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         
-        # Add custom title bar
         self.title_bar = CustomTitleBar(self)
         main_layout.addWidget(self.title_bar)
         
-        # Create content widget
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(20, 20, 20, 20)
         
-        # Create tab widget
         tabs = QTabWidget()
         content_layout.addWidget(tabs)
         
-        # Add tabs
         tabs.addTab(self.create_optimization_tab(), "Optimization")
         tabs.addTab(self.create_testing_tab(), "Testing")
         tabs.addTab(self.create_settings_tab(), "Settings")
         
         main_layout.addWidget(content_widget)
         
-        # Status bar
         self.statusBar().addWidget(self.status_label)
 
     def create_optimization_tab(self):
         tab = QWidget()
         layout = QVBoxLayout(tab)
         
-        # Create optimization widgets
         mtu_widget = OptimizationWidget("MTU Optimization", 
                                       self.network_optimizer.optimize_mtu,
                                       self.network_optimizer.restore_mtu)
@@ -240,7 +220,6 @@ class MainWindow(QMainWindow):
                                          self.network_optimizer.manage_buffer,
                                          self.network_optimizer.restore_buffer)
         
-        # Add widgets to layout
         layout.addWidget(mtu_widget)
         layout.addWidget(tcp_widget)
         layout.addWidget(buffer_widget)
@@ -252,22 +231,17 @@ class MainWindow(QMainWindow):
         tab = QWidget()
         layout = QVBoxLayout(tab)
         
-        # Test buttons
         test_before_btn = QPushButton("Run Pre-optimization Test")
         test_after_btn = QPushButton("Run Post-optimization Test")
         
-        # Progress label
         self.progress_label = QLabel("")
         
-        # Connect buttons to functions
         test_before_btn.clicked.connect(lambda: asyncio.create_task(self.run_pre_test()))
         test_after_btn.clicked.connect(lambda: asyncio.create_task(self.run_post_test()))
         
-        # Results graph
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
         
-        # Add widgets to layout
         layout.addWidget(test_before_btn)
         layout.addWidget(test_after_btn)
         layout.addWidget(self.progress_label)
@@ -279,7 +253,6 @@ class MainWindow(QMainWindow):
         tab = QWidget()
         layout = QVBoxLayout(tab)
         
-        # Add settings widgets here
         settings_label = QLabel("Settings will be implemented here")
         layout.addWidget(settings_label)
         
@@ -312,29 +285,24 @@ class MainWindow(QMainWindow):
     def update_results_graph(self):
         self.figure.clear()
         
-        # Get test results
         pre_results = self.network_tester.pre_test_results
         post_results = self.network_tester.post_test_results
         
         if not pre_results or not post_results:
             return
             
-        # Create subplot
         ax = self.figure.add_subplot(111)
         
-        # Prepare data
         metrics = list(pre_results.keys())
         pre_values = [pre_results[m] for m in metrics]
         post_values = [post_results[m] for m in metrics]
         
-        # Plot bars
         x = range(len(metrics))
         width = 0.35
         
         ax.bar([i - width/2 for i in x], pre_values, width, label='Pre-optimization')
         ax.bar([i + width/2 for i in x], post_values, width, label='Post-optimization')
         
-        # Customize graph
         ax.set_ylabel('Value')
         ax.set_title('Network Performance Comparison')
         ax.set_xticks(x)

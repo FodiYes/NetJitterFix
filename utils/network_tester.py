@@ -14,21 +14,18 @@ class NetworkTester(QObject):
         self.os_type = platform.system()
         
     async def run_pre_test(self):
-        """Run network tests before optimization"""
         results = await self.run_network_tests()
         self.pre_test_results = results
         self.test_complete.emit(results)
         return results
     
     async def run_post_test(self):
-        """Run network tests after optimization"""
         results = await self.run_network_tests()
         self.post_test_results = results
         self.test_complete.emit(results)
         return results
     
     async def run_network_tests(self):
-        """Run comprehensive network tests"""
         results = {}
         try:
             results['packet_loss'] = float(await self.test_packet_loss() or 0)
@@ -46,7 +43,6 @@ class NetworkTester(QObject):
         return results
     
     async def run_ping(self, count=1, size=None):
-        """Run ping command asynchronously"""
         try:
             if self.os_type == "Windows":
                 cmd = ["ping", "-n", str(count), "8.8.8.8"]
@@ -83,7 +79,6 @@ class NetworkTester(QObject):
             return None, None
     
     async def test_packet_loss(self, packets=10):
-        """Test packet loss rate"""
         try:
             stdout, _ = await self.run_ping(count=packets)
             if not stdout:
@@ -92,7 +87,6 @@ class NetworkTester(QObject):
             sent = packets
             received = 0
             
-            # Parse ping output
             if self.os_type == "Windows":
                 for line in stdout.split('\n'):
                     if "bytes=" in line:
@@ -110,7 +104,6 @@ class NetworkTester(QObject):
             return 0.0
     
     async def test_jitter(self, samples=10):
-        """Test network jitter"""
         try:
             stdout, _ = await self.run_ping(count=samples)
             if not stdout:
@@ -118,7 +111,6 @@ class NetworkTester(QObject):
                 
             latencies = []
             
-            # Parse ping output
             for line in stdout.split('\n'):
                 if "time=" in line or "время=" in line:
                     try:
@@ -132,7 +124,6 @@ class NetworkTester(QObject):
                     except:
                         continue
             
-            # Calculate jitter as standard deviation of latencies
             if latencies:
                 jitter = statistics.stdev(latencies)
                 return jitter
@@ -143,7 +134,6 @@ class NetworkTester(QObject):
             return 0.0
     
     async def test_latency(self, samples=5):
-        """Test network latency"""
         try:
             stdout, _ = await self.run_ping(count=samples)
             if not stdout:
@@ -151,7 +141,6 @@ class NetworkTester(QObject):
                 
             latencies = []
             
-            # Parse ping output
             for line in stdout.split('\n'):
                 if "time=" in line or "время=" in line:
                     try:
@@ -175,16 +164,13 @@ class NetworkTester(QObject):
             return 0.0
     
     async def test_bandwidth(self, packets=20):
-        """Test network bandwidth"""
         try:
-            # Use large packets for bandwidth estimation
             stdout, _ = await self.run_ping(count=packets, size=1400)
             if not stdout:
                 return 0.0
                 
             times = []
             
-            # Parse ping output
             for line in stdout.split('\n'):
                 if "time=" in line or "время=" in line:
                     try:
@@ -200,10 +186,9 @@ class NetworkTester(QObject):
             
             if times:
                 avg_time = statistics.mean(times)
-                # Rough bandwidth estimation in Mbps
-                bandwidth = (1400 * 8) / (avg_time / 1000) / 1000000
-                return bandwidth
-            
+                if avg_time > 0:
+                    bandwidth = (1400 * 8) / (avg_time / 1000)
+                    return bandwidth / 1000000
             return 0.0
             
         except Exception as e:
@@ -211,7 +196,6 @@ class NetworkTester(QObject):
             return 0.0
     
     def get_comparison(self):
-        """Compare pre and post optimization results"""
         if not self.pre_test_results or not self.post_test_results:
             return None
             
