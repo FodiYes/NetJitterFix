@@ -110,4 +110,4 @@ If you encounter any issues or have questions, please:
 3. Include your system information and error logs
 
 ---
-Made with ❤️ by [Your Name]
+Made with ❤️ by FodiYes
